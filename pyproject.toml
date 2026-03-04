@@ -1,6 +1,6 @@
 [project]
 name = "bilibili-cli"
-version = "0.2.0"
+version = "0.3.0"
 description = "A CLI for Bilibili — browse videos, users, favorites from the terminal"
 readme = "README.md"
 license = "Apache-2.0"
