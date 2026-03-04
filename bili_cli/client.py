@@ -11,7 +11,7 @@ import logging
 from typing import Any
 
 import aiohttp
-from bilibili_api import video, user, favorite_list, search
+from bilibili_api import video, user, favorite_list, search, hot, rank, comment, dynamic, homepage
 from bilibili_api.utils.network import Credential
 
 logger = logging.getLogger(__name__)
@@ -205,3 +205,116 @@ async def get_favorite_videos(
     return await favorite_list.get_video_favorite_list_content(
         media_id=fav_id, page=page, credential=credential
     )
+
+
+# ---------------------------------------------------------------------------
+# Hot & Rank
+# ---------------------------------------------------------------------------
+
+
+async def get_hot_videos(pn: int = 1, ps: int = 20) -> dict[str, Any]:
+    """Fetch popular/hot videos."""
+    return await hot.get_hot_videos(pn=pn, ps=ps)
+
+
+async def get_rank_videos(day: int = 3) -> dict[str, Any]:
+    """Fetch ranking videos (default: 3-day rank)."""
+    day_type = rank.RankDayType.THREE_DAY if day == 3 else rank.RankDayType.WEEK
+    return await rank.get_rank(day=day_type)
+
+
+# ---------------------------------------------------------------------------
+# Video extras
+# ---------------------------------------------------------------------------
+
+
+async def get_video_comments(
+    bvid: str, page: int = 1, credential: Credential = None
+) -> dict[str, Any]:
+    """Fetch video comments."""
+    v = video.Video(bvid=bvid, credential=credential)
+    info = await v.get_info()
+    aid = info["aid"]
+    return await comment.get_comments(
+        oid=aid,
+        type_=comment.CommentResourceType.VIDEO,
+        page_index=page,
+        credential=credential,
+    )
+
+
+async def get_video_ai_conclusion(
+    bvid: str, credential: Credential = None
+) -> dict[str, Any]:
+    """Fetch AI-generated video summary."""
+    v = video.Video(bvid=bvid, credential=credential)
+    pages = await v.get_pages()
+    cid = pages[0]["cid"] if pages else 0
+    return await v.get_ai_conclusion(cid=cid)
+
+
+async def get_related_videos(
+    bvid: str, credential: Credential = None
+) -> list[dict[str, Any]]:
+    """Fetch related/recommended videos."""
+    v = video.Video(bvid=bvid, credential=credential)
+    return await v.get_related()
+
+
+# ---------------------------------------------------------------------------
+# Search (video)
+# ---------------------------------------------------------------------------
+
+
+async def search_video(keyword: str, page: int = 1) -> list[dict[str, Any]]:
+    """Search for videos by keyword."""
+    res = await search.search_by_type(
+        keyword=keyword,
+        search_type=search.SearchObjectType.VIDEO,
+        page=page,
+    )
+    return res.get("result", [])
+
+
+# ---------------------------------------------------------------------------
+# Following & Toview
+# ---------------------------------------------------------------------------
+
+
+async def get_followings(
+    uid: int, pn: int = 1, ps: int = 20, credential: Credential = None
+) -> dict[str, Any]:
+    """Fetch user's following list."""
+    u = user.User(uid=uid, credential=credential)
+    return await u.get_followings(pn=pn, ps=ps)
+
+
+async def get_toview(credential: Credential) -> dict[str, Any]:
+    """Fetch watch-later (稍后再看) list."""
+    data = await homepage.get_favorite_list_and_toview(credential)
+    # data is a list; the item with name="稍后再看" contains toview videos
+    for item in data:
+        if item.get("name") == "稍后再看" or item.get("id") == 2:
+            resp = item.get("mediaListResponse", {})
+            return {
+                "list": resp.get("list", []),
+                "count": resp.get("count", 0),
+            }
+    return {"list": [], "count": 0}
+
+
+# ---------------------------------------------------------------------------
+# Dynamic Feed
+# ---------------------------------------------------------------------------
+
+
+async def get_dynamic_feed(
+    offset: str = "", credential: Credential = None
+) -> dict[str, Any]:
+    """Fetch dynamic feed (动态时间线)."""
+    d = dynamic.Dynamic(dynamic_id=0, credential=credential)
+    # Use the new dynamics API
+    me = await user.get_self_info(credential)
+    uid = me["mid"]
+    u = user.User(uid=uid, credential=credential)
+    return await u.get_dynamics_new(offset=offset)
