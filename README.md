@@ -90,7 +90,7 @@ Most commands work without login. Subtitles, favorites, feed, and interactions r
 
 bilibili-cli ships with a [`SKILL.md`](./SKILL.md) that teaches AI agents how to use it.
 
-To add it to your project:
+### Claude Code / Antigravity
 
 ```bash
 # Clone into your project's skills directory
@@ -102,7 +102,17 @@ curl -o .agents/skills/bilibili-cli/SKILL.md \
   https://raw.githubusercontent.com/jackwener/bilibili-cli/main/SKILL.md
 ```
 
-Once added, AI agents that support the `.agents/skills/` convention (like Antigravity, Claude Code, etc.) will automatically discover and use bilibili-cli commands.
+Once added, AI agents that support the `.agents/skills/` convention will automatically discover and use bilibili-cli commands.
+
+### OpenClaw / ClawHub
+
+Officially supports [OpenClaw](https://openclaw.ai) and [ClawHub](https://docs.openclaw.ai/tools/clawhub). Install via ClawHub:
+
+```bash
+clawhub install bilibili-cli
+```
+
+All bilibili-cli commands are available in OpenClaw after installation.
 
 ---
 
@@ -190,7 +200,7 @@ bilibili-cli 采用三级认证策略：
 
 bilibili-cli 自带 [`SKILL.md`](./SKILL.md)，让 AI Agent 能自动学习并使用本工具。
 
-添加到你的项目：
+### Claude Code / Antigravity
 
 ```bash
 # 克隆到项目的 skills 目录
@@ -202,7 +212,17 @@ curl -o .agents/skills/bilibili-cli/SKILL.md \
   https://raw.githubusercontent.com/jackwener/bilibili-cli/main/SKILL.md
 ```
 
-添加后，支持 `.agents/skills/` 的 AI Agent（如 Antigravity、Claude Code 等）会自动发现并使用 bilibili-cli 命令。
+添加后，支持 `.agents/skills/` 的 AI Agent 会自动发现并使用 bilibili-cli 命令。
+
+### OpenClaw / ClawHub
+
+官方支持 [OpenClaw](https://openclaw.ai) 和 [ClawHub](https://docs.openclaw.ai/tools/clawhub) 生态。通过 ClawHub 安装：
+
+```bash
+clawhub install bilibili-cli
+```
+
+安装后即可在 OpenClaw 中直接使用所有 bilibili-cli 命令。
 
 ## License
 
