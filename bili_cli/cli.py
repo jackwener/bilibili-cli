@@ -97,12 +97,34 @@ def status():
 
     try:
         info = _run(client.get_self_info(cred))
-        name = info.get("name", "unknown")
         uid = info.get("mid", "unknown")
+        relation = _run(client.get_user_relation_info(uid, credential=cred))
+
+        name = info.get("name", "unknown")
         level = info.get("level", "?")
+        coins = info.get("coins", 0)
+        follower = relation.get("follower", 0)
+        following = relation.get("following", 0)
+
+        # VIP status
+        vip = info.get("vip", {})
+        vip_label = ""
+        if vip.get("status") == 1:
+            vip_type = "大会员" if vip.get("type") == 2 else "小会员"
+            vip_label = f"  |  🏅 {vip_type}"
+
+        sign = info.get("sign", "").strip()
+
+        lines = [
+            f"👤 [bold]{name}[/bold]  (UID: {uid})",
+            f"⭐ Level {level}  |  🪙 硬币 {coins}{vip_label}",
+            f"👥 粉丝 {_format_count(follower)}  |  🔔 关注 {_format_count(following)}",
+        ]
+        if sign:
+            lines.append(f"📝 {sign}")
+
         console.print(Panel(
-            f"👤 [bold]{name}[/bold]  (UID: {uid})\n"
-            f"⭐ Level {level}",
+            "\n".join(lines),
             title="登录状态",
             border_style="green",
         ))
