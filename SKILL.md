@@ -21,6 +21,10 @@ A CLI tool for interacting with Bilibili (哔哩哔哩). Use it to fetch video i
 # Install (requires Python 3.10+)
 pipx install bilibili-cli
 # Or: uv tool install bilibili-cli
+
+# If you need audio extraction support (requires PyAV)
+pipx install "bilibili-cli[audio]"
+# Or: uv tool install "bilibili-cli[audio]"
 ```
 
 ## Authentication
@@ -28,11 +32,11 @@ pipx install bilibili-cli
 Most read commands work without login. Subtitles, favorites/following/watch-later/history, feed, and interactions require login.
 
 ```bash
-bili status                    # Check if logged in
+bili status                    # Check if logged in (exit 0 = yes, 1 = no)
 bili login                     # QR code login (if not authenticated)
 ```
 
-Authentication auto-detects local browser cookies (Chrome/Firefox/Edge/Brave). If cookies are found and valid, no manual login needed.
+Authentication auto-detects local browser cookies (Chrome/Firefox/Edge/Brave). If cookies are found and valid, no manual login needed. Credentials are saved to `~/.bilibili-cli/credential.json`.
 
 ## Command Reference
 
@@ -71,15 +75,21 @@ bili search "关键词"
 
 # Search videos
 bili search "关键词" --type video
+
+# Pagination and limit
+bili search "关键词" --type video --max 5
+bili search "关键词" --page 2
 ```
 
 ### Discovery
 
 ```bash
 bili hot                       # Trending/popular videos
-bili hot --max 10               # Limit results
-bili rank                      # Site-wide ranking
+bili hot --page 2 --max 10     # Page 2, limit 10
+bili rank                      # Site-wide ranking (3-day)
+bili rank --day 7 --max 30     # 7-day ranking, top 30
 bili feed                      # Dynamic timeline (requires login)
+bili feed --offset 1234567890  # Next page via returned cursor
 bili my-dynamics               # My posted dynamics (requires login)
 bili dynamic-post "hello"      # Publish text dynamic (requires write credential)
 bili dynamic-delete 123456789  # Delete one dynamic (requires write credential)
@@ -96,6 +106,8 @@ bili history                   # Watch history
 ```
 
 ### Audio Extraction
+
+Requires `bilibili-cli[audio]` extra (PyAV). Install with `pipx install "bilibili-cli[audio]"`.
 
 ```bash
 # Download audio and split into ASR-ready WAV segments (25s each, 16kHz mono)
@@ -136,11 +148,23 @@ bili hot --json | jq '.list[0].title'                # First trending title
 bili user 946974 --json | jq '.user_info.name'       # Username
 ```
 
+## Debugging
+
+```bash
+bili -v <command>              # Enable verbose/debug logging for any command
+```
+
 ## Common Patterns for AI Agents
 
 ```bash
 # Get a video's subtitle text for summarization
 bili video BV1ABcsztEcY --subtitle
+
+# Get AI-generated summary of a video
+bili video BV1ABcsztEcY --ai
+
+# Get comments for sentiment analysis
+bili video BV1ABcsztEcY --comments
 
 # Extract audio for speech-to-text (ASR)
 # Segments are saved to /tmp/bilibili-cli/{title}/seg_000.wav, seg_001.wav, ...
@@ -156,9 +180,44 @@ bili status && bili like BV1ABcsztEcY
 bili search "topic" --type video --json | python3 -c "import sys,json; r=json.load(sys.stdin); print(r[0]['bvid'] if r else 'not found')"
 ```
 
+### Workflow: Video Content Analysis
+
+```bash
+# 1. Search for a topic
+bili search "AI" --type video --max 5
+
+# 2. Get video details + subtitle
+bili video BV1xxx --subtitle
+
+# 3. If no subtitle, extract audio for ASR
+bili audio BV1xxx --segment 25
+
+# 4. Get comments for audience reaction
+bili video BV1xxx --comments
+```
+
+### Workflow: UP主 Research
+
+```bash
+# 1. Look up UP主 profile
+bili user "影视飓风"
+
+# 2. Get their recent videos
+bili user-videos 946974 --max 10
+
+# 3. Inspect a specific video
+bili video BV1xxx --ai --comments
+```
+
 ## Error Handling
 
 - Commands exit with code 0 on success, non-zero on failure
 - Error messages are prefixed with ❌
 - Login-required commands show ⚠️ with instruction to run `bili login`
 - Invalid BV IDs show a clear error message
+
+## Safety Notes
+
+- Do not ask users to share raw credential/cookie values in chat logs.
+- Prefer local browser cookie extraction over manual secret copy/paste.
+- If auth fails, ask the user to re-login via `bili login`.
