@@ -49,7 +49,9 @@ bili video BV1ABcsztEcY
 bili video https://www.bilibili.com/video/BV1ABcsztEcY
 
 # Options
-bili video BV1ABcsztEcY --subtitle      # Show subtitles (AI or uploaded)
+bili video BV1ABcsztEcY --subtitle            # Show subtitles (plain text)
+bili video BV1ABcsztEcY --subtitle-timeline   # Show subtitles with timestamps
+bili video BV1ABcsztEcY -st --subtitle-format srt  # Export as SRT format
 bili video BV1ABcsztEcY --ai            # Show B站 AI summary
 bili video BV1ABcsztEcY --comments      # Show top comments
 bili video BV1ABcsztEcY --related       # Show related videos

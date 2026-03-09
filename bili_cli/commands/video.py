@@ -12,12 +12,14 @@ from . import common
 
 @click.command()
 @click.argument("bv_or_url")
-@click.option("--subtitle", "-s", is_flag=True, help="显示字幕内容。")
+@click.option("--subtitle", "-s", is_flag=True, help="显示字幕内容（纯文本）。")
+@click.option("--subtitle-timeline", "-st", is_flag=True, help="显示带时间线的字幕。")
+@click.option("--subtitle-format", type=click.Choice(["timeline", "srt"]), default="timeline", help="字幕格式：timeline（人类可读）或 srt。")
 @click.option("--comments", "-c", is_flag=True, help="显示评论。")
 @click.option("--ai", is_flag=True, help="显示 AI 总结。")
 @click.option("--related", "-r", is_flag=True, help="显示相关推荐视频。")
 @click.option("--json", "as_json", is_flag=True, help="输出原始 JSON。")
-def video(bv_or_url: str, subtitle: bool, comments: bool, ai: bool, related: bool, as_json: bool):
+def video(bv_or_url: str, subtitle: bool, subtitle_timeline: bool, subtitle_format: str, comments: bool, ai: bool, related: bool, as_json: bool):
     """查看视频详情。
 
     BV_OR_URL 可以是 BV 号（如 BV1xxx）或完整 URL。
@@ -62,16 +64,23 @@ def video(bv_or_url: str, subtitle: bool, comments: bool, ai: bool, related: boo
 
     common.console.print(table)
 
-    if subtitle:
+    if subtitle or subtitle_timeline:
         common.console.print("\n[bold]📝 字幕内容:[/bold]\n")
         sub_data = common.run_optional(
             client.get_video_subtitle(bvid, credential=cred),
             "获取字幕失败",
         )
         if sub_data is not None:
-            sub_text, _ = sub_data
-            if sub_text:
-                common.console.print(sub_text)
+            sub_text, raw = sub_data
+            # Determine content to display
+            display_content = ""
+            if subtitle_timeline and raw:
+                display_content = client.format_subtitle_timeline(raw, format=subtitle_format)
+            elif subtitle:
+                display_content = sub_text
+            
+            if display_content:
+                common.console.print(display_content)
             else:
                 common.console.print("[yellow]⚠️  无字幕（可能需要登录或视频无字幕）[/yellow]")
 

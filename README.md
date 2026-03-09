@@ -63,7 +63,9 @@ bili whoami                    # Detailed profile (level, coins, followers)
 
 # Videos
 bili video BV1ABcsztEcY                 # Video details
-bili video BV1ABcsztEcY --subtitle      # With subtitles
+bili video BV1ABcsztEcY --subtitle                 # With subtitles (plain text)
+bili video BV1ABcsztEcY --subtitle-timeline        # With timeline
+bili video BV1ABcsztEcY -st --subtitle-format srt  # Export as SRT format
 bili video BV1ABcsztEcY --ai            # AI summary
 bili video BV1ABcsztEcY --comments      # Top comments
 bili video BV1ABcsztEcY --related       # Related videos
@@ -204,7 +206,9 @@ bili whoami                    # 查看个人信息（等级、硬币、粉丝�
 
 # 视频
 bili video BV1ABcsztEcY                 # 视频详情
-bili video BV1ABcsztEcY --subtitle      # 显示字幕
+bili video BV1ABcsztEcY --subtitle                 # 显示字幕（纯文本）
+bili video BV1ABcsztEcY --subtitle-timeline        # 显示带时间线的字幕
+bili video BV1ABcsztEcY -st --subtitle-format srt  # 导出为 SRT 格式
 bili video BV1ABcsztEcY --ai            # AI 总结
 bili video BV1ABcsztEcY --comments      # 热门评论
 bili video BV1ABcsztEcY --related       # 相关推荐
