@@ -303,11 +303,14 @@ async def _get_video_comments_direct(
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
+            "Chrome/133.0.0.0 Safari/537.36"
         ),
         "Referer": f"https://www.bilibili.com/video/{bvid}/",
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "zh-CN,zh;q=0.9",
+        "sec-ch-ua": '"Chromium";v="133", "Not(A:Brand";v="99", "Google Chrome";v="133"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"macOS"',
     }
     if credential and credential.sessdata:
         cookies = [f"SESSDATA={credential.sessdata}"]
@@ -570,7 +573,11 @@ async def triple_video(bvid: str, credential: Credential) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 _DOWNLOAD_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/133.0.0.0 Safari/537.36"
+    ),
     "Referer": "https://www.bilibili.com",
 }
 
