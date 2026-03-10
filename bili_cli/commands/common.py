@@ -19,6 +19,7 @@ from ..exceptions import BiliError, InvalidBvidError
 console = Console(stderr=True)
 OutputFormat = str | None
 _OUTPUT_ENV = "OUTPUT"
+_SCHEMA_VERSION = "1"
 
 
 def setup_logging(verbose: bool):
@@ -61,6 +62,30 @@ def emit_structured(data: object, output_format: OutputFormat) -> bool:
         click.echo(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
         return True
     return False
+
+
+def success_payload(data: object) -> dict[str, object]:
+    """Wrap structured success data in the shared agent schema."""
+    return {
+        "ok": True,
+        "schema_version": _SCHEMA_VERSION,
+        "data": data,
+    }
+
+
+def error_payload(code: str, message: str, *, details: object | None = None) -> dict[str, object]:
+    """Wrap structured error data in the shared agent schema."""
+    error: dict[str, object] = {
+        "code": code,
+        "message": message,
+    }
+    if details is not None:
+        error["details"] = details
+    return {
+        "ok": False,
+        "schema_version": _SCHEMA_VERSION,
+        "error": error,
+    }
 
 
 def exit_error(message: str) -> NoReturn:

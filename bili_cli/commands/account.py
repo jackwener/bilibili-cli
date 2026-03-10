@@ -2,10 +2,25 @@
 
 from __future__ import annotations
 
+import sys
+
 import click
 from rich.panel import Panel
 
 from . import common
+
+
+def _bilibili_user_payload(info: dict) -> dict[str, object]:
+    """Normalize Bilibili user info for structured agent output."""
+    return {
+        "id": str(info.get("mid", "unknown")),
+        "name": info.get("name", "unknown"),
+        "username": "",
+        "level": info.get("level", 0),
+        "coins": info.get("coins", 0),
+        "sign": info.get("sign", ""),
+        "vip": info.get("vip", {}),
+    }
 
 
 @click.command()
@@ -32,18 +47,30 @@ def logout():
 def status(as_json: bool, as_yaml: bool):
     """检查登录状态。"""
     output_format = common.resolve_output_format(as_json=as_json, as_yaml=as_yaml)
-    cred = common.require_login(message="未登录。使用 [bold]bili login[/bold] 登录。")
+    cred = common.get_credential(mode="read")
+    if not cred:
+        payload = common.error_payload("not_authenticated", "未登录。使用 bili login 登录。")
+        if common.emit_structured(payload, output_format):
+            raise SystemExit(1) from None
+        common.print_login_required("未登录。使用 [bold]bili login[/bold] 登录。")
+        sys.exit(1)
 
     from .. import client
 
-    info = common.run_or_exit(client.get_self_info(cred), "检查登录状态失败")
-    payload = {
-        "authenticated": True,
-        "user": {
-            "uid": info.get("mid", "unknown"),
-            "name": info.get("name", "unknown"),
-        },
-    }
+    try:
+        info = common.run(client.get_self_info(cred))
+    except Exception as exc:
+        payload = common.error_payload("api_error", f"检查登录状态失败: {exc}")
+        if common.emit_structured(payload, output_format):
+            raise SystemExit(1) from None
+        common.exit_error(f"检查登录状态失败: {exc}")
+
+    payload = common.success_payload(
+        {
+            "authenticated": True,
+            "user": _bilibili_user_payload(info),
+        }
+    )
     if common.emit_structured(payload, output_format):
         return
     name = info.get("name", "unknown")
@@ -60,16 +87,28 @@ def whoami(as_json: bool, as_yaml: bool):
 
     output_format = common.resolve_output_format(as_json=as_json, as_yaml=as_yaml)
 
-    cred = common.require_login(message="未登录。使用 [bold]bili login[/bold] 登录。")
+    cred = common.get_credential(mode="read")
+    if not cred:
+        payload = common.error_payload("not_authenticated", "未登录。使用 bili login 登录。")
+        if common.emit_structured(payload, output_format):
+            raise SystemExit(1) from None
+        common.print_login_required("未登录。使用 [bold]bili login[/bold] 登录。")
+        sys.exit(1)
 
-    info = common.run_or_exit(client.get_self_info(cred), "获取用户信息失败")
-    uid = info.get("mid", "unknown")
-    relation = common.run_or_exit(
-        client.get_user_relation_info(uid, credential=cred),
-        "获取用户信息失败",
-    )
+    try:
+        info = common.run(client.get_self_info(cred))
+        uid = info.get("mid", "unknown")
+        relation = common.run(client.get_user_relation_info(uid, credential=cred))
+    except Exception as exc:
+        payload = common.error_payload("api_error", f"获取用户信息失败: {exc}")
+        if common.emit_structured(payload, output_format):
+            raise SystemExit(1) from None
+        common.exit_error(f"获取用户信息失败: {exc}")
 
-    if common.emit_structured({"info": info, "relation": relation}, output_format):
+    if common.emit_structured(
+        common.success_payload({"user": _bilibili_user_payload(info), "relation": relation}),
+        output_format,
+    ):
         return
 
     name = info.get("name", "unknown")

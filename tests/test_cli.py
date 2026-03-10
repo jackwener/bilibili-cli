@@ -46,8 +46,10 @@ def test_status_auto_yaml_when_stdout_is_not_tty(runner, mock_user_info, monkeyp
         result = runner.invoke(cli, ["status"])
         assert result.exit_code == 0
         data = _load_yaml(result.output)
-        assert data["authenticated"] is True
-        assert data["user"]["name"] == "TestUP"
+        assert data["ok"] is True
+        assert data["schema_version"] == "1"
+        assert data["data"]["authenticated"] is True
+        assert data["data"]["user"]["name"] == "TestUP"
 
 
 def test_logout(runner):
@@ -86,8 +88,10 @@ def test_whoami_json(runner, mock_user_info, mock_relation_info):
         result = runner.invoke(cli, ["whoami", "--json"])
         assert result.exit_code == 0
         data = json.loads(result.output)
-        assert data["info"]["name"] == "TestUP"
-        assert data["relation"]["follower"] == 50000
+        assert data["ok"] is True
+        assert data["schema_version"] == "1"
+        assert data["data"]["user"]["name"] == "TestUP"
+        assert data["data"]["relation"]["follower"] == 50000
 
 
 def test_whoami_yaml(runner, mock_user_info, mock_relation_info):
@@ -98,8 +102,10 @@ def test_whoami_yaml(runner, mock_user_info, mock_relation_info):
         result = runner.invoke(cli, ["whoami", "--yaml"])
         assert result.exit_code == 0
         data = _load_yaml(result.output)
-        assert data["info"]["name"] == "TestUP"
-        assert data["relation"]["follower"] == 50000
+        assert data["ok"] is True
+        assert data["schema_version"] == "1"
+        assert data["data"]["user"]["name"] == "TestUP"
+        assert data["data"]["relation"]["follower"] == 50000
 
 
 # ===== Video =====
