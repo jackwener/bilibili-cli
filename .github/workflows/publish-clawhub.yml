@@ -51,6 +51,7 @@ jobs:
           fi
 
           clawhub --no-input login --token "${CLAWHUB_TOKEN}" --no-browser
+          export VERSION
 
           # Workaround: clawhub@0.7.0 publish doesn't send acceptLicenseTerms,
           # which the server now requires. Use a Node.js script to publish with
